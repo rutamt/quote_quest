@@ -17,17 +17,25 @@
   padding: 20px;
 }
 
+.quote-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+}
+
 .quote {
   position: relative;
   max-width: 620px;
   margin: 80px auto;
   align-self: center;
-  font-size: calc(2rem + 2vmin);
+  font-size: calc(0.5em + 2vmax);
   font-weight: normal;
-  line-height: 1;
+  line-height: 1.2;
   border: solid 2px;
   border-radius: 20px;
   padding: 25px;
+  container-name: quote-wrapper;
 }
 .quote:after {
   content: "";
@@ -61,6 +69,12 @@
   flex-direction: row;
   align-items: center;
   justify-content: center;
+}
+
+@container quote-wrapper (min-height: 300px) {
+  .quote {
+    font-size: 1em;
+  }
 }
 
 .btn {
