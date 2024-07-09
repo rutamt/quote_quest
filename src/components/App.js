@@ -1,17 +1,13 @@
-import "./App.css";
+import "../styles/App.css";
 import { useEffect, useState } from "react";
-import { Button, Flex, Segmented } from "antd";
+import { Button } from "antd";
 
 let nextId = 0;
 
 function App() {
   const [quote, setQuote] = useState("");
   const [authors, setAuthors] = useState([]);
-
-  const boxStyle = {
-    width: "100%",
-    height: 120,
-  };
+  const [answer, setAnswer] = useState("");
 
   useEffect(() => {
     fetch("https://api.quotable.io/quotes/random?limit=4")
@@ -20,14 +16,22 @@ function App() {
         // Choose one random quote
         const randomQuote = data[Math.floor(Math.random() * data.length)];
         setQuote(randomQuote.content);
+        setAnswer(randomQuote.author);
 
         data.forEach((quote) => {
-          setAuthors([...authors, { id: nextId++, name: quote.author }]);
-          console.log(quote.author, "quote");
-          console.log(authors, "author");
+          setAuthors((a) => [...a, { id: nextId++, name: quote.author }]);
         });
       });
   }, []);
+
+  const checkAnswer = (author) => {
+    console.log(author, "author", answer, "answer");
+    if (author === answer) {
+      alert("Correct");
+    } else {
+      alert("Wrong");
+    }
+  };
 
   return (
     <div className="App">
@@ -37,18 +41,18 @@ function App() {
         </div>
 
         <div className="answer">
-          <Button type="primary" className="btn">
-            Primary
-          </Button>
-          <Button type="primary" className="btn">
-            Primary
-          </Button>
-          <Button type="primary" className="btn">
-            Primary
-          </Button>
-          <Button type="primary" className="btn">
-            Primary
-          </Button>
+          {authors.map((author) => (
+            <Button
+              key={author.id}
+              onClick={() => {
+                checkAnswer(author.name);
+              }}
+              type="primary"
+              className="btn"
+            >
+              {author.name}
+            </Button>
+          ))}
         </div>
       </div>
     </div>
