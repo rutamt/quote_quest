@@ -173,7 +173,9 @@ function Site() {
           <div className="quote-wrapper">
             <div className="quote" id="qt">
               {!quote && <Skeleton.Input active />}
+              <span>"</span>
               {quote}
+              <span>"</span>
             </div>
           </div>
           <div className="answer-wrapper">
@@ -198,8 +200,9 @@ function Site() {
           {/* <h1>Correct: {correctAnswers}</h1>
             <h1>Incorrect: {incorrectAnswers}</h1> */}
           <h1>Score: {correctAnswers + -incorrectAnswers}</h1>
+          <Button onClick={endGame}>End game</Button>
         </div>
-        <Button onClick={endGame}>End game</Button>
+
         <Modal
           title="Game over"
           open={isModalOpen}
