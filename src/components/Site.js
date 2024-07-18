@@ -1,7 +1,7 @@
 import "../styles/App.css";
 import options from "./ThemeSelect";
 import { useEffect, useState } from "react";
-import { Button, Skeleton, Cascader, Modal } from "antd";
+import { Button, Skeleton, Cascader, Modal, message } from "antd";
 import {
   LineChart,
   Line,
@@ -29,9 +29,7 @@ function Site() {
   const [roundPerformance, setRoundPerformance] = useState(
     JSON.parse(localStorage.getItem("roundPerformance")) || []
   );
-  const [gameOver, setGameOver] = useState(
-    JSON.parse(localStorage.getItem("gameOver")) || true
-  );
+  const [messageApi, contextHolder] = message.useMessage();
 
   // Starts the game on component render
   useEffect(() => {
@@ -43,8 +41,7 @@ function Site() {
     localStorage.setItem("incorrectAnswers", incorrectAnswers);
     localStorage.setItem("theme", theme);
     localStorage.setItem("roundPerformance", JSON.stringify(roundPerformance));
-    localStorage.setItem("gameOver", JSON.stringify(gameOver));
-  }, [correctAnswers, incorrectAnswers, theme, roundPerformance, gameOver]);
+  }, [correctAnswers, incorrectAnswers, theme, roundPerformance]);
 
   // Uses able api to find quote and assigns that to a var
   const getQuestion = () => {
@@ -87,16 +84,28 @@ function Site() {
     setAuthors([]);
   };
 
+  const feedback = (author, result) => {
+    let messageContent = "";
+    if (author === "") {
+      messageContent = "Correct!";
+    } else messageContent = `Wrong, it was actually ${author}`;
+    messageApi.open({
+      type: result,
+      content: messageContent,
+    });
+  };
+
   // Checks the answer and gives feedback
   const checkAnswer = (author) => {
     console.log(author, "author", answer, "answer");
     if (author === answer) {
-      alert("Correct");
+      feedback("", "success");
       setCorrectAnswers(correctAnswers + 1);
     } else {
-      alert(`Wrong, it was actually ${answer}`);
+      feedback(answer, "error");
       setIncorrectAnswers(incorrectAnswers + 1);
     }
+
     getQuestion();
     setRoundPerformance([
       ...roundPerformance,
@@ -119,13 +128,15 @@ function Site() {
   };
   const handleOk = () => {
     setIsModalOpen(false);
-  };
-  const handleCancel = () => {
-    setIsModalOpen(false);
+    setIncorrectAnswers(0);
+    setCorrectAnswers(0);
+    setRoundPerformance([]);
+    roundNum = 1;
   };
 
   const endGame = () => {
     showModal();
+    getQuestion();
   };
 
   // Used to change theme with cascader
@@ -142,76 +153,78 @@ function Site() {
   return (
     <>
       <div className="App">
-        <div className="quote-quest">
-          <div className="nav-wrapper">
-            <Cascader
-              defaultValue={[theme]}
-              options={options}
-              onChange={onChange}
-            ></Cascader>
-            <Button
-              onClick={() => {
-                getQuestion();
-              }}
-            >
-              Start
-            </Button>
-          </div>
+        <div className="nav-wrapper">
+          {contextHolder}
+          <Cascader
+            defaultValue={[theme]}
+            options={options}
+            onChange={onChange}
+          ></Cascader>
+          <Button
+            onClick={() => {
+              getQuestion();
+            }}
+          >
+            Start
+          </Button>
+        </div>
 
+        <div className="quote-quest">
           <div className="quote-wrapper">
             <div className="quote" id="qt">
-              {!quote && <Skeleton active />}
+              {!quote && <Skeleton.Input active />}
               {quote}
             </div>
           </div>
-
-          <div className="answer">
-            {authors.map((author) => (
-              <Button
-                key={author.id}
-                onClick={() => {
-                  checkAnswer(author.name);
-                }}
-                type="primary"
-                className="btn resizable"
-              >
-                {author.name}
-              </Button>
-            ))}
+          <div className="answer-wrapper">
+            <div className="answer">
+              {authors.map((author) => (
+                <button
+                  key={author.id}
+                  onClick={() => {
+                    checkAnswer(author.name);
+                  }}
+                  type="primary"
+                  className="btn resizable"
+                >
+                  {author.name}
+                </button>
+              ))}
+            </div>
           </div>
-
-          <div className="JAEWONHELP">
-            {/* <h1>Correct: {correctAnswers}</h1>
-            <h1>Incorrect: {incorrectAnswers}</h1> */}
-            <h1>Score: {correctAnswers + -incorrectAnswers}</h1>
-          </div>
-          <Button onClick={endGame}>End game</Button>
-          <Modal
-            title="Game over"
-            open={isModalOpen}
-            onOk={handleOk}
-            onCancel={handleCancel}
-          >
-            <h2>
-              Accuracy:{" "}
-              {correctAnswers + incorrectAnswers
-                ? (
-                    (correctAnswers / (correctAnswers + incorrectAnswers)) *
-                    100
-                  ).toFixed(2)
-                : 0}
-              %
-            </h2>
-            <h2>Score: {correctAnswers + -incorrectAnswers}</h2>
-            <LineChart width={500} height={300} data={roundPerformance}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="round" padding={{ left: 30, right: 30 }} />
-              <YAxis domain={[0, 100]} />
-              <Tooltip />
-              <Line type="monotone" dataKey="performance" stroke="#82ca9d" />
-            </LineChart>
-          </Modal>
         </div>
+
+        <div className="footer">
+          {/* <h1>Correct: {correctAnswers}</h1>
+            <h1>Incorrect: {incorrectAnswers}</h1> */}
+          <h1>Score: {correctAnswers + -incorrectAnswers}</h1>
+        </div>
+        <Button onClick={endGame}>End game</Button>
+        <Modal
+          title="Game over"
+          open={isModalOpen}
+          onOk={handleOk}
+          onCancel={handleOk}
+        >
+          <h2>
+            Accuracy:{" "}
+            {correctAnswers + incorrectAnswers
+              ? (
+                  (correctAnswers / (correctAnswers + incorrectAnswers)) *
+                  100
+                ).toFixed(2)
+              : 0}
+            %
+          </h2>
+          <h2>Score: {correctAnswers + -incorrectAnswers}</h2>
+          <LineChart width={500} height={300} data={roundPerformance}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="round" padding={{ left: 30, right: 30 }} />
+            <YAxis domain={[0, 100]} />
+            <Tooltip />
+            <Line type="monotone" dataKey="performance" stroke="#82ca9d" />
+          </LineChart>
+        </Modal>
       </div>
     </>
   );
